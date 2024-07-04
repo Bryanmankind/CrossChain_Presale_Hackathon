@@ -15,6 +15,9 @@ import {IAssetForwarder, IMessageHandler} from "./IAssetForwarder.sol";
 contract CrosschainPresale {
     using SafeERC20 for IERC20;
     AggregatorV3Interface internal dataFeed;
+    address public nitroAssetForwarder;
+
+
 
     // Error handeling
     error invalidAccount();
@@ -72,19 +75,33 @@ contract CrosschainPresale {
     event BuyToken (address indexed user,  uint256 indexed amount);
     event PriceUpdated(uint256 newPrice);
 
-    constructor (address _tokenAddress, address paymentAdd) {
+    constructor (address _nitroAssetForwarder, address _tokenAddress, address paymentAdd) {
         owner = payable (msg.sender);
         PMT = IERC20(_tokenAddress);
         USDC = IERC20(paymentAdd);
+
+        nitroAssetForwarder = _nitroAssetForwarder;
+
         dataFeed = AggregatorV3Interface(
             0x694AA1769357215DE4FAC081bf1f309aDC325306
         );
         preSaleStartTime = block.timestamp;
         endpreSale = preSaleStartTime + 60 days;
+
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     receive() external payable {
         buyTokenWithEth ();
+    }
+
+    // ----------------------------- cross chain data .................................>
+    function setChainData(
+        string memory _chainId,
+        bytes memory _vaultContract,
+        bytes memory _usdt
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        chainData[_chainId] = ChainData(_vaultContract, _usdt);
     }
 
     function getChainlinkDataFeedLatestAnswer() public view returns (int) {
