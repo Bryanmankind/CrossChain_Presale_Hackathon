@@ -1,4 +1,3 @@
-import './App.css';
 
 function App() {
   const PATH_FINDER_API_URL = "https://api.pf.testnet.routerprotocol.com/api";
